@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>James Eichelbaum</Authors>
+    <Company />
+    <Description>A client for GraphQL</Description>
+    <RepositoryUrl>https://github.com/jeich/graphQL-client</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>GraphQL C#</PackageTags>
+    <PackageProjectUrl>https://github.com/jeich/graphQL-client</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/jeich/graphQL-client/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageId>jeich.GraphQLClient</PackageId>
+    <RootNamespace>JEich.GraphQL</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.2" />
+  </ItemGroup>
+
+</Project>
