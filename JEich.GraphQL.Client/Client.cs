@@ -27,8 +27,8 @@ namespace JEich.GraphQL
         }
 
         public async Task<Response<TResponse>> GetAsync<TRequest, TResponse>()
-            where TRequest : class 
-            where TResponse : class
+            where TRequest : class
+            where TResponse : class, new()
         {
             using (var client = GetHttpClient())
             {
@@ -47,17 +47,18 @@ namespace JEich.GraphQL
                     {
                         if (child.Key == "data")
                         {
-                            foreach (var dataChild in child.Value.Value<JObject>())
+                            var dataObj = child.Value.ToObject<JObject>();
+                            string typeName = typeof(TResponse).Name.ToLower();
+                            if (dataObj[typeName] == null)
                             {
-                                if (dataChild.Key == typeof(TResponse).Name.ToLower())
-                                {
-                                    return new Response<TResponse>
-                                    {
-                                        Result = dataChild.Value.ToObject<TResponse>(),
-                                        WasSuccessful = true
-                                    };
-                                }
+                                throw new Exception("Data format invalid");//TODO: tidy up
                             }
+                            var item = DeserializeObjectAndChildren<TResponse>(dataObj[typeName].ToObject<JObject>());
+                            return new Response<TResponse>
+                            {
+                                Result = item,
+                                WasSuccessful = true
+                            };
                         }
                     }
                     var response = JsonConvert.DeserializeObject<Http.Response<TResponse>>(content);
@@ -76,6 +77,32 @@ namespace JEich.GraphQL
                     };
                 }
             }
+        }
+
+        protected static T DeserializeObjectAndChildren<T>(JObject obj)
+            where T : new()
+        {
+            return (T)DeserializeObjectAndChildren(obj, typeof(T));
+        }
+        protected static object DeserializeObjectAndChildren(JObject obj, Type t)
+        {
+            var result = Activator.CreateInstance(t);
+            var properties = t.GetRuntimeProperties().ToDictionary(x => x.Name.ToLower(), x => x);
+            foreach (var token in obj)
+            {
+                if (properties.ContainsKey(token.Key))
+                {
+                    if (token.Value.Type == JTokenType.Object)
+                    {
+                        properties[token.Key].SetValue(result, DeserializeObjectAndChildren(token.Value.ToObject<JObject>(), properties[token.Key].PropertyType));
+                    }
+                    else
+                    {
+                        properties[token.Key].SetValue(result, token.Value.ToObject(properties[token.Key].PropertyType));
+                    }
+                }
+            }
+            return result;
         }
 
         protected static string CreateRequestObject<T>()

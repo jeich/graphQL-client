@@ -40,6 +40,25 @@ namespace JEich.GraphQL.Tests
             Assert.AreEqual("R2-D2", response.Result.Name);
         }
 
+        [TestMethod]
+        public async Task GetAsync_NestedOnject_DeserializesCorrectly()
+        {
+            SetupGraphQLResponse(@"
+                ""hero"": {
+                      ""name"": ""R2-D2"",
+                        ""weapon"": {
+                            ""name"": ""axe""
+                        }
+                    }
+            ");
+
+            var response = await _client.GetAsync<Data.Hero, Data.Hero>();
+            Assert.IsTrue(response.WasSuccessful);
+            Assert.AreEqual("R2-D2", response.Result.Name);
+            Assert.IsNotNull(response.Result.Weapon);
+            Assert.IsNotNull("axe", response.Result.Weapon.Name);
+        }
+
         private void SetupGraphQLResponse(string data)
         {
             SetupMessageHandler($@"{{
