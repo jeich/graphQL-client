@@ -1,5 +1,4 @@
 using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QLClient = JEich.GraphQL.Client;
 using System.Threading.Tasks;
 using System.Net.Http;
@@ -8,10 +7,13 @@ using System.Text;
 using System.Threading;
 using Moq.Protected;
 using Newtonsoft.Json;
+using System.Net;
+using System.Linq;
+using NUnit.Framework;
 
 namespace JEich.GraphQL.Tests
 {
-    [TestClass]
+    [TestFixture]
     public class ClientTests
     {
         private readonly Uri _baseUri = new Uri("http://localhost/graphql");
@@ -19,27 +21,27 @@ namespace JEich.GraphQL.Tests
         private Mock<HttpMessageHandler> _mockMessageHandler = new Mock<HttpMessageHandler>();
         private QLClient _client;
 
-        [TestInitialize]
+        [SetUp]
         public void SetUp()
         {
             _httpClient = new HttpClient(_mockMessageHandler.Object);
             _client = new QLClient(_baseUri, () => _httpClient);
         }
 
-        [TestMethod]
+        [Test]
         public async Task GetAsync_OneField_DeserializesCorrectly()
         {
-            SetupMessageHandler(Responses.Basic);
+            SetupMessageHandler(Responses.Basic, HttpStatusCode.OK);
 
             var response = await _client.GetAsync<Data.Hero, Data.Hero>();
             Assert.IsTrue(response.WasSuccessful);
             Assert.AreEqual("R2-D2", response.Result.Name);
         }
 
-        [TestMethod]
+        [Test]
         public async Task GetAsync_NestedObject_DeserializesCorrectly()
         {
-            SetupMessageHandler(Responses.NestedObject);
+            SetupMessageHandler(Responses.NestedObject, HttpStatusCode.OK);
 
             var response = await _client.GetAsync<Data.LonelyHero, Data.LonelyHero>();
             Assert.IsTrue(response.WasSuccessful);
@@ -48,10 +50,10 @@ namespace JEich.GraphQL.Tests
             Assert.AreEqual("Luke Skywalker", response.Result.Friend.Name);
         }
 
-        [TestMethod]
+        [Test]
         public async Task GetAsync_NestedObjectWithComment_DeserializesCorrectly()
         {
-            SetupMessageHandler(Responses.NestedObjectWithComment);
+            SetupMessageHandler(Responses.NestedObjectWithComment, HttpStatusCode.OK);
 
             var response = await _client.GetAsync<Data.LonelyHero, Data.LonelyHero>();
             Assert.IsTrue(response.WasSuccessful);
@@ -60,10 +62,10 @@ namespace JEich.GraphQL.Tests
             Assert.AreEqual("Luke Skywalker", response.Result.Friend.Name);
         }
 
-        [TestMethod]
+        [Test]
         public async Task GetAsync_NestedArray_DeserializesCorrectly()
         {
-            SetupMessageHandler(Responses.NestedArray);
+            SetupMessageHandler(Responses.NestedArray, HttpStatusCode.OK);
 
             var response = await _client.GetAsync<Data.Hero, Data.Hero>();
             Assert.IsTrue(response.WasSuccessful);
@@ -74,23 +76,34 @@ namespace JEich.GraphQL.Tests
             Assert.AreEqual("Leia Organa", response.Result.Friends[2].Name);
         }
 
-        private void SetupGraphQLResponse(string data)
+        [Test]
+        public async Task GetAsync_NestedArrayWithErrors_DeserializesCorrectly()
         {
-            SetupMessageHandler($@"{{
-                ""data"": {{
-                    {data}
-                }}
-            }}");
+            SetupMessageHandler(Responses.NestedArrayWithErrors, HttpStatusCode.BadRequest);
+
+            var response = await _client.GetAsync<Data.Hero, Data.Hero>();
+            Assert.IsFalse(response.WasSuccessful);
+            Assert.AreEqual("R2-D2", response.Result.Name);
+            Assert.IsNotNull(response.Result.Friends);
+            Assert.AreEqual("Luke Skywalker", response.Result.Friends[0].Name);
+            Assert.AreEqual("Leia Organa", response.Result.Friends[2].Name);
+            Assert.IsNotNull(response.Errors);
+            var errors = response.Errors.ToList();
+            Assert.AreNotEqual(0, response.Errors.Count());
+            Assert.AreEqual("Name for character with ID 1002 could not be fetched.", errors[0].Message);
+            Assert.AreEqual(6, errors[0].Locations.Single().Line);
+            Assert.AreEqual(7, errors[0].Locations.Single().Column);
+            Assert.That(errors[0].Path, Is.EquivalentTo(new string[] { "hero", "heroFriends", "1", "name" }));
         }
 
-        private void SetupMessageHandler(string response)
+        private void SetupMessageHandler(string response, HttpStatusCode status)
         {
             _mockMessageHandler
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
                 .Returns(Task.FromResult(new HttpResponseMessage
                 {
-                    StatusCode = System.Net.HttpStatusCode.OK,
+                    StatusCode = status,
                     Content = new StringContent(response, Encoding.UTF8, "application/json")
                 }));
         }

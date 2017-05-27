@@ -104,6 +104,39 @@ namespace JEich.GraphQL.Tests {
         
         /// <summary>
         ///   Looks up a localized string similar to {
+        ///  &quot;errors&quot;: [
+        ///    {
+        ///      &quot;message&quot;: &quot;Name for character with ID 1002 could not be fetched.&quot;,
+        ///      &quot;locations&quot;: [ { &quot;line&quot;: 6, &quot;column&quot;: 7 } ],
+        ///      &quot;path&quot;: [ &quot;hero&quot;, &quot;heroFriends&quot;, 1, &quot;name&quot; ]
+        ///    }
+        ///  ],
+        ///  &quot;data&quot;: {
+        ///    &quot;hero&quot;: {
+        ///      &quot;name&quot;: &quot;R2-D2&quot;,
+        ///      &quot;friends&quot;: [
+        ///        {
+        ///          &quot;id&quot;: &quot;1000&quot;,
+        ///          &quot;name&quot;: &quot;Luke Skywalker&quot;
+        ///        },
+        ///        null,
+        ///        {
+        ///          &quot;id&quot;: &quot;1003&quot;,
+        ///          &quot;name&quot;: &quot;Leia Organa&quot;
+        ///        }
+        ///      ]
+        ///    }
+        ///  }
+        ///}.
+        /// </summary>
+        public static string NestedArrayWithErrors {
+            get {
+                return ResourceManager.GetString("NestedArrayWithErrors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
         ///  &quot;data&quot;: {
         ///    &quot;lonelyhero&quot;: {
         ///      &quot;name&quot;: &quot;R2-D2&quot;,

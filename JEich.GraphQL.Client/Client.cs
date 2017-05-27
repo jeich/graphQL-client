@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System.Reflection;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 
 namespace JEich.GraphQL
 {
@@ -39,43 +40,34 @@ namespace JEich.GraphQL
                     Content = new StringContent(CreateRequestObject<TRequest>(), Encoding.UTF8, "application/json")
                 };
                 var httpResponse = await client.SendAsync(httpRequest);
-                if (httpResponse.IsSuccessStatusCode)
+                string content = await httpResponse.Content.ReadAsStringAsync();
+                var jobject = JObject.Parse(content);
+                TResponse data = null;
+                List<Http.Error> errors = new List<Http.Error>();
+                foreach (var child in jobject)
                 {
-                    string content = await httpResponse.Content.ReadAsStringAsync();
-                    var jobject = JObject.Parse(content);
-                    foreach (var child in jobject)
+                    if (child.Key == "data")
                     {
-                        if (child.Key == "data")
+                        var dataObj = child.Value;
+                        string typeName = typeof(TResponse).Name.ToLower();
+                        if (dataObj[typeName] == null)
                         {
-                            var dataObj = child.Value;
-                            string typeName = typeof(TResponse).Name.ToLower();
-                            if (dataObj[typeName] == null)
-                            {
-                                throw new Exception("Data format invalid");//TODO: tidy up
-                            }
-                            var item = DeserializeObjectAndChildren<TResponse>(dataObj[typeName]);
-                            return new Response<TResponse>
-                            {
-                                Result = item,
-                                WasSuccessful = true
-                            };
+                            throw new Exception("Data format invalid");//TODO: tidy up
                         }
+                        data = DeserializeObjectAndChildren<TResponse>(dataObj[typeName]);
                     }
-                    var response = JsonConvert.DeserializeObject<Http.Response<TResponse>>(content);
-                    return new Response<TResponse>
+                    else if (child.Key == "errors")
                     {
-                        Result = null,
-                        WasSuccessful = false
-                    };
+                        errors = child.Value.ToObject<List<Http.Error>>();
+                    }
                 }
-                else
+                var response = JsonConvert.DeserializeObject<Http.Response<TResponse>>(content);
+                return new Response<TResponse>
                 {
-                    return new Response<TResponse>
-                    {
-                        Result = null,
-                        WasSuccessful = false
-                    };
-                }
+                    Result = data,
+                    WasSuccessful = httpResponse.IsSuccessStatusCode && !errors.Any(),
+                    Errors = errors
+                };
             }
         }
 
@@ -116,12 +108,6 @@ namespace JEich.GraphQL
                     var parent = child.Parent as JProperty;
                     properties[parent.Name].SetValue(result, DeserializeObjectAndChildren(child, properties[parent.Name].PropertyType));
                 }
-            }
-            foreach (var obj in token.Children<JObject>())
-            {
-            }
-            foreach (var array in token.Children<JArray>())
-            {
             }
             return result;
         }

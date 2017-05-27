@@ -6,6 +6,12 @@ namespace JEich.GraphQL.Model.Http
 {
     public class Response<T>
     {
+        public Response()
+        {
+            Errors = new List<Error>();
+        }
+
         public T Data { get; set; }
+        public IReadOnlyCollection<Error> Errors { get; set; }
     }
 }

@@ -146,6 +146,33 @@
   }
 }</value>
   </data>
+  <data name="NestedArrayWithErrors" xml:space="preserve">
+    <value>{
+  "errors": [
+    {
+      "message": "Name for character with ID 1002 could not be fetched.",
+      "locations": [ { "line": 6, "column": 7 } ],
+      "path": [ "hero", "heroFriends", 1, "name" ]
+    }
+  ],
+  "data": {
+    "hero": {
+      "name": "R2-D2",
+      "friends": [
+        {
+          "id": "1000",
+          "name": "Luke Skywalker"
+        },
+        null,
+        {
+          "id": "1003",
+          "name": "Leia Organa"
+        }
+      ]
+    }
+  }
+}</value>
+  </data>
   <data name="NestedObject" xml:space="preserve">
     <value>{
   "data": {
