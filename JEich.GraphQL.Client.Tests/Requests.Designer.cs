@@ -114,6 +114,46 @@ namespace JEich.GraphQL.Tests {
         
         /// <summary>
         ///   Looks up a localized string similar to {
+        ///  nullableprimitiveplayer {
+        ///    id
+        ///    name
+        ///  }
+        ///}.
+        /// </summary>
+        internal static string ClrPrimitiveArguments {
+            get {
+                return ResourceManager.GetString("ClrPrimitiveArguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  primitiveplayer (id: 0) {
+        ///    name
+        ///  }
+        ///}.
+        /// </summary>
+        internal static string ClrUnspecifiedPrimitiveArguments {
+            get {
+                return ResourceManager.GetString("ClrUnspecifiedPrimitiveArguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  primitiveplayer(id: 4) {
+        ///    name
+        ///  }
+        ///}.
+        /// </summary>
+        internal static string PrimitiveArguments {
+            get {
+                return ResourceManager.GetString("PrimitiveArguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
         ///  player(id: &quot;4&quot;) {
         ///    name
         ///  }

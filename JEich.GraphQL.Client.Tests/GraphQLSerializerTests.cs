@@ -52,6 +52,36 @@ namespace JEich.GraphQL.Tests
             AssertEqualIgnoringWhiteSpace(Requests.SpecifiedArgumentsNotRequested, result);
         }
 
+        [Test]
+        public void SerializeRequestObject_WithPrimitiveArguments_CorrectlySerializes()
+        {
+            var requestObject = new RequestObject(new Data.PrimitivePlayer { Id = 4 });
+
+            string result = GraphQLSerializer.SerializeRequestObject(requestObject);
+
+            AssertEqualIgnoringWhiteSpace(Requests.PrimitiveArguments, result);
+        }
+
+        [Test]
+        public void SerializeRequestObject_WithClrPrimitiveArgument_CorrectlySerializes()
+        {
+            var requestObject = new RequestObject(new Data.PrimitivePlayer());
+
+            string result = GraphQLSerializer.SerializeRequestObject(requestObject);
+
+            AssertEqualIgnoringWhiteSpace(Requests.ClrUnspecifiedPrimitiveArguments, result);
+        }
+
+        [Test]
+        public void SerializeRequestObject_WithNullablePrimitiveArgument_CorrectlySerializes()
+        {
+            var requestObject = new RequestObject(new Data.NullablePrimitivePlayer());
+
+            string result = GraphQLSerializer.SerializeRequestObject(requestObject);
+
+            AssertEqualIgnoringWhiteSpace(Requests.ClrPrimitiveArguments, result);
+        }
+
         #endregion Arguments
 
         #region Aliases

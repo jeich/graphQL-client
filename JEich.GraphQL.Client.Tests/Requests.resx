@@ -150,6 +150,28 @@
 	}
 }</value>
   </data>
+  <data name="ClrPrimitiveArguments" xml:space="preserve">
+    <value>{
+  nullableprimitiveplayer {
+    id
+    name
+  }
+}</value>
+  </data>
+  <data name="ClrUnspecifiedPrimitiveArguments" xml:space="preserve">
+    <value>{
+  primitiveplayer (id: 0) {
+    name
+  }
+}</value>
+  </data>
+  <data name="PrimitiveArguments" xml:space="preserve">
+    <value>{
+  primitiveplayer(id: 4) {
+    name
+  }
+}</value>
+  </data>
   <data name="SpecifiedArgumentsNotRequested" xml:space="preserve">
     <value>{
   player(id: "4") {

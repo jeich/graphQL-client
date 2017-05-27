@@ -1,4 +1,6 @@
 ﻿using JEich.GraphQL.Model;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,7 +62,7 @@ namespace JEich.GraphQL
             var properties = GetPropertyInfo(obj);
             foreach (var p in properties)
             {
-                if (!IsNonCustomType(p.PropertyType.GetTypeInfo()))
+                if (!IsClrType(p.PropertyType.GetTypeInfo()))
                 {
                     var unwrapped = p.PropertyType.IsArray
                         ? p.PropertyType.GetElementType()
@@ -96,17 +98,18 @@ namespace JEich.GraphQL
             {
                 sb.Append("(");
                 //TODO: Fix stringification of primitives
-                sb.Append(string.Join(", ", specifiedProps.Select(x => $"{x.Name.ToLower()}: \"{x.GetValue(obj)}\"")));
+                sb.Append(string.Join(", ", specifiedProps.Select(x => $"{x.Name.ToLower()}: {JsonConvert.SerializeObject(x.GetValue(obj))}")));
                 sb.Append(")");
             }
         }
 
-        private static bool IsNonCustomType(TypeInfo t)
+        private static bool IsClrType(TypeInfo t)
         {
             return t.IsPrimitive
                 || t.IsEnum
                 || t.Equals(typeof(string))
-                || t.Equals(typeof(decimal));
+                || t.Equals(typeof(decimal))
+                || (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>));
         }
 
         private static IEnumerable<PropertyInfo> GetPropertyInfo(object obj)
