@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using System.Dynamic;
 
 namespace JEich.GraphQL
 {
@@ -27,9 +28,7 @@ namespace JEich.GraphQL
             _httpClientProvider = httpClientProvider;
         }
 
-        public async Task<Response<TResponse>> GetAsync<TRequest, TResponse>()
-            where TRequest : class
-            where TResponse : class, new()
+        public async Task<Response> GetAsync(params RequestObject[] objs)
         {
             using (var client = GetHttpClient())
             {
@@ -37,34 +36,41 @@ namespace JEich.GraphQL
                 {
                     RequestUri = _baseUri,
                     Method = HttpMethod.Get,
-                    Content = new StringContent(CreateRequestObject<TRequest>(), Encoding.UTF8, "application/json")
+                    Content = new StringContent(CreateRequestObjects(objs), Encoding.UTF8, "application/json")
                 };
+                var requestObjects = objs.ToDictionary(x => x.Name, x => x);
                 var httpResponse = await client.SendAsync(httpRequest);
                 string content = await httpResponse.Content.ReadAsStringAsync();
                 var jobject = JObject.Parse(content);
-                TResponse data = null;
+                var responseObjects = new List<object>();
                 List<Http.Error> errors = new List<Http.Error>();
                 foreach (var child in jobject)
                 {
                     if (child.Key == "data")
                     {
-                        var dataObj = child.Value;
-                        string typeName = typeof(TResponse).Name.ToLower();
-                        if (dataObj[typeName] == null)
+                        var innerData = child.Value;
+                        if (innerData.Type == JTokenType.Object)
                         {
-                            throw new Exception("Data format invalid");//TODO: tidy up
+                            foreach (var property in innerData.Children<JProperty>())
+                            {
+                                var name = property.Name;
+                                if (requestObjects.ContainsKey(name))
+                                {
+                                    var requestObject = requestObjects[name];
+                                    responseObjects.Add(DeserializeObjectAndChildren(property.Value, requestObject.Object.GetType()));
+                                }
+
+                            }
                         }
-                        data = DeserializeObjectAndChildren<TResponse>(dataObj[typeName]);
                     }
                     else if (child.Key == "errors")
                     {
                         errors = child.Value.ToObject<List<Http.Error>>();
                     }
                 }
-                var response = JsonConvert.DeserializeObject<Http.Response<TResponse>>(content);
-                return new Response<TResponse>
+                return new Response
                 {
-                    Result = data,
+                    Result = responseObjects,
                     WasSuccessful = httpResponse.IsSuccessStatusCode && !errors.Any(),
                     Errors = errors
                 };
@@ -96,30 +102,33 @@ namespace JEich.GraphQL
                 if (child is JProperty)
                 {
                     var property = (JProperty)child;
-                    properties[property.Name].SetValue(result, property.Value.ToObject(properties[property.Name].PropertyType));
+                    if (properties.ContainsKey(property.Name))
+                        properties[property.Name].SetValue(result, property.Value.ToObject(properties[property.Name].PropertyType));
                 }
                 else if (child is JObject)
                 {
                     var parent = child.Parent as JProperty;
-                    properties[parent.Name].SetValue(result, DeserializeObjectAndChildren(child, properties[parent.Name].PropertyType));
+                    if (properties.ContainsKey(parent.Name))
+                        properties[parent.Name].SetValue(result, DeserializeObjectAndChildren(child, properties[parent.Name].PropertyType));
                 }
                 else
                 {
                     var parent = child.Parent as JProperty;
-                    properties[parent.Name].SetValue(result, DeserializeObjectAndChildren(child, properties[parent.Name].PropertyType));
+                    if (properties.ContainsKey(parent.Name))
+                        properties[parent.Name].SetValue(result, DeserializeObjectAndChildren(child, properties[parent.Name].PropertyType));
                 }
             }
             return result;
         }
 
-        protected static string CreateRequestObject<T>()
+        protected static string CreateRequestObjects(params RequestObject[] objs)
         {
-            return $"{{ {typeof(T).Name.ToLower()} {{ {SerializeInnerObject<T>()} }} }}";
+            return $"{{ {string.Join(",", objs.Select(x => x.Name + "{" + SerializeInnerObject(x) + "}"))} }}";
         }
 
-        protected static string SerializeInnerObject<T>()
+        protected static string SerializeInnerObject(RequestObject obj)
         {
-            return string.Join(Environment.NewLine, typeof(T).GetRuntimeProperties().Select(x => x.Name.ToLower()));
+            return string.Join(Environment.NewLine, obj.GetType().GetRuntimeProperties().Select(x => x.Name.ToLower()));
         }
 
         protected HttpClient GetHttpClient()

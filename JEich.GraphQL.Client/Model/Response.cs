@@ -5,10 +5,10 @@ using System.Text;
 
 namespace JEich.GraphQL.Model
 {
-    public class Response<T> where T : class
+    public class Response
     {
         public IReadOnlyCollection<Error> Errors { get; set; }
-        public T Result { get; set; }
+        public IReadOnlyCollection<object> Result { get; set; }
         public bool WasSuccessful { get; set; }
     }
 }

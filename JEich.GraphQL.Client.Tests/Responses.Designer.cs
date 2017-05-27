@@ -64,6 +64,27 @@ namespace JEich.GraphQL.Tests {
         /// <summary>
         ///   Looks up a localized string similar to {
         ///  &quot;data&quot;: {
+        ///    &quot;Obi-wan Kanobi&quot;: {
+        ///      &quot;name&quot;: &quot;Obi-wan Kanobi&quot;,
+        ///      &quot;friends&quot;: [{
+        ///          &quot;name&quot;: &quot;Luke Skywalker&quot;
+        ///        }]
+        ///    },
+        ///	&quot;Qui-gon Xin&quot;: {
+        ///		&quot;name&quot;: &quot;Qui-gon Xin&quot;
+        ///	}
+        ///  }
+        ///}.
+        /// </summary>
+        public static string AliasedObjects {
+            get {
+                return ResourceManager.GetString("AliasedObjects", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;data&quot;: {
         ///    &quot;hero&quot;: {
         ///      &quot;name&quot;: &quot;R2-D2&quot;
         ///    }
@@ -73,6 +94,27 @@ namespace JEich.GraphQL.Tests {
         public static string Basic {
             get {
                 return ResourceManager.GetString("Basic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;data&quot;: {
+        ///    &quot;lonelyhero&quot;: {
+        ///      &quot;name&quot;: &quot;R2-D2&quot;,
+        ///      &quot;friend&quot;: {
+        ///          &quot;name&quot;: &quot;Luke Skywalker&quot;
+        ///        }
+        ///    },
+        ///	&quot;hero&quot;: {
+        ///		&quot;name&quot;: &quot;Obi-wan Kanobi&quot;
+        ///	}
+        ///  }
+        ///}.
+        /// </summary>
+        public static string MultipleObjects {
+            get {
+                return ResourceManager.GetString("MultipleObjects", resourceCulture);
             }
         }
         

@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using System.Net;
 using System.Linq;
 using NUnit.Framework;
+using JEich.GraphQL.Model;
 
 namespace JEich.GraphQL.Tests
 {
@@ -33,9 +34,21 @@ namespace JEich.GraphQL.Tests
         {
             SetupMessageHandler(Responses.Basic, HttpStatusCode.OK);
 
-            var response = await _client.GetAsync<Data.Hero, Data.Hero>();
+            var response = await _client.GetAsync(new RequestObject(new Data.Hero()));
+            var hero = response.Result.First() as Data.Hero;
             Assert.IsTrue(response.WasSuccessful);
-            Assert.AreEqual("R2-D2", response.Result.Name);
+            Assert.AreEqual("R2-D2", hero.Name);
+        }
+
+        [Test]
+        public async Task GetAsync_ResponseContainsAdditionalField_DeserializesCorrectly()
+        {
+            SetupMessageHandler(Responses.NestedObject, HttpStatusCode.OK);
+
+            var response = await _client.GetAsync(new RequestObject(new Data.LonelyHero()));
+            var hero = response.Result.First() as Data.LonelyHero;
+            Assert.IsTrue(response.WasSuccessful);
+            Assert.AreEqual("R2-D2", hero.Name);
         }
 
         [Test]
@@ -43,11 +56,46 @@ namespace JEich.GraphQL.Tests
         {
             SetupMessageHandler(Responses.NestedObject, HttpStatusCode.OK);
 
-            var response = await _client.GetAsync<Data.LonelyHero, Data.LonelyHero>();
+            var response = await _client.GetAsync(new RequestObject(new Data.LonelyHero()));
+            var hero = response.Result.First() as Data.LonelyHero;
             Assert.IsTrue(response.WasSuccessful);
-            Assert.AreEqual("R2-D2", response.Result.Name);
-            Assert.IsNotNull(response.Result.Friend);
-            Assert.AreEqual("Luke Skywalker", response.Result.Friend.Name);
+            Assert.AreEqual("R2-D2", hero.Name);
+            Assert.IsNotNull(hero.Friend);
+            Assert.AreEqual("Luke Skywalker", hero.Friend.Name);
+        }
+
+        [Test]
+        public async Task GetAsync_MultipleRequestObjects_DeserializesCorrectly()
+        {
+            SetupMessageHandler(Responses.MultipleObjects, HttpStatusCode.OK);
+
+            var response = await _client.GetAsync(new RequestObject(new Data.LonelyHero()), new RequestObject(new Data.Hero()));
+            var hero = response.Result.First() as Data.LonelyHero;
+            var anotherHero = response.Result.Skip(1).First() as Data.Hero;
+
+            Assert.That(response.WasSuccessful);
+            Assert.That(hero.Name, Is.EqualTo("R2-D2"));
+            Assert.That(hero.Friend, Is.Not.Null);
+            Assert.That(hero.Friend.Name, Is.EqualTo("Luke Skywalker"));
+
+            Assert.That(anotherHero.Name, Is.EqualTo("Obi-wan Kanobi"));
+        }
+
+        [Test]
+        public async Task GetAsync_MultipleAliasedRequestObjects_DeserializesCorrectly()
+        {
+            SetupMessageHandler(Responses.AliasedObjects, HttpStatusCode.OK);
+
+            var response = await _client.GetAsync(new AliasedObject(new Data.Hero(), "Qui-gon Xin"), new AliasedObject(new Data.Hero(), "Obi-wan Kanobi"));
+            var hero = response.Result.First() as Data.Hero;
+            var anotherHero = response.Result.Skip(1).First() as Data.Hero;
+
+            Assert.That(response.WasSuccessful);
+            Assert.That(hero.Name, Is.EqualTo("Obi-wan Kanobi"));
+            Assert.That(hero.Friends[0], Is.Not.Null);
+            Assert.That(hero.Friends[0].Name, Is.EqualTo("Luke Skywalker"));
+
+            Assert.That(anotherHero.Name, Is.EqualTo("Qui-gon Xin"));
         }
 
         [Test]
@@ -55,11 +103,12 @@ namespace JEich.GraphQL.Tests
         {
             SetupMessageHandler(Responses.NestedObjectWithComment, HttpStatusCode.OK);
 
-            var response = await _client.GetAsync<Data.LonelyHero, Data.LonelyHero>();
+            var response = await _client.GetAsync(new RequestObject(new Data.LonelyHero()));
+            var hero = response.Result.First() as Data.LonelyHero;
             Assert.IsTrue(response.WasSuccessful);
-            Assert.AreEqual("R2-D2", response.Result.Name);
-            Assert.IsNotNull(response.Result.Friend);
-            Assert.AreEqual("Luke Skywalker", response.Result.Friend.Name);
+            Assert.AreEqual("R2-D2", hero.Name);
+            Assert.IsNotNull(hero.Friend);
+            Assert.AreEqual("Luke Skywalker", hero.Friend.Name);
         }
 
         [Test]
@@ -67,13 +116,14 @@ namespace JEich.GraphQL.Tests
         {
             SetupMessageHandler(Responses.NestedArray, HttpStatusCode.OK);
 
-            var response = await _client.GetAsync<Data.Hero, Data.Hero>();
+            var response = await _client.GetAsync(new RequestObject(new Data.Hero()));
+            var hero = response.Result.First() as Data.Hero;
             Assert.IsTrue(response.WasSuccessful);
-            Assert.AreEqual("R2-D2", response.Result.Name);
-            Assert.IsNotNull(response.Result.Friends);
-            Assert.AreEqual("Luke Skywalker", response.Result.Friends[0].Name);
-            Assert.AreEqual("Han Solo", response.Result.Friends[1].Name);
-            Assert.AreEqual("Leia Organa", response.Result.Friends[2].Name);
+            Assert.AreEqual("R2-D2", hero.Name);
+            Assert.IsNotNull(hero.Friends);
+            Assert.AreEqual("Luke Skywalker", hero.Friends[0].Name);
+            Assert.AreEqual("Han Solo", hero.Friends[1].Name);
+            Assert.AreEqual("Leia Organa", hero.Friends[2].Name);
         }
 
         [Test]
@@ -81,12 +131,13 @@ namespace JEich.GraphQL.Tests
         {
             SetupMessageHandler(Responses.NestedArrayWithErrors, HttpStatusCode.BadRequest);
 
-            var response = await _client.GetAsync<Data.Hero, Data.Hero>();
+            var response = await _client.GetAsync(new RequestObject(new Data.Hero()));
+            var hero = response.Result.First() as Data.Hero;
             Assert.IsFalse(response.WasSuccessful);
-            Assert.AreEqual("R2-D2", response.Result.Name);
-            Assert.IsNotNull(response.Result.Friends);
-            Assert.AreEqual("Luke Skywalker", response.Result.Friends[0].Name);
-            Assert.AreEqual("Leia Organa", response.Result.Friends[2].Name);
+            Assert.AreEqual("R2-D2", hero.Name);
+            Assert.IsNotNull(hero.Friends);
+            Assert.AreEqual("Luke Skywalker", hero.Friends[0].Name);
+            Assert.AreEqual("Leia Organa", hero.Friends[2].Name);
             Assert.IsNotNull(response.Errors);
             var errors = response.Errors.ToList();
             Assert.AreNotEqual(0, response.Errors.Count());
