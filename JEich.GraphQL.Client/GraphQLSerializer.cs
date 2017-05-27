@@ -76,9 +76,14 @@ namespace JEich.GraphQL
                 }
                 else
                 {
-                    sb.Append(p.Name.ToLower());
-                    if (p != properties.Last())
-                        sb.Append(Environment.NewLine);
+                    object value = p.GetValue(obj);
+                    //Exclude arguments
+                    if (value == null)
+                    {
+                        sb.Append(p.Name.ToLower());
+                        if (p != properties.Last())
+                            sb.Append(Environment.NewLine);
+                    }
                 }
             }
         }

@@ -64,13 +64,11 @@ namespace JEich.GraphQL.Tests {
         /// <summary>
         ///   Looks up a localized string similar to {
         ///  empireHero: hero(name: &quot;Darth Vader&quot;) {
-        ///    name
         ///    friends {
         ///      name
         ///    }
         ///  }
         ///  jediHero: hero(name: &quot;Luke Skywalker&quot;) {
-        ///    name
         ///    friends {
         ///      name
         ///    }  
@@ -86,7 +84,6 @@ namespace JEich.GraphQL.Tests {
         /// <summary>
         ///   Looks up a localized string similar to {
         ///  hero(name: &quot;Obi-wan Kanobi&quot;) {
-        ///    name
         ///    friends {
         ///      name
         ///    }
@@ -112,6 +109,19 @@ namespace JEich.GraphQL.Tests {
         internal static string Basic {
             get {
                 return ResourceManager.GetString("Basic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  player(id: &quot;4&quot;) {
+        ///    name
+        ///  }
+        ///}.
+        /// </summary>
+        internal static string SpecifiedArgumentsNotRequested {
+            get {
+                return ResourceManager.GetString("SpecifiedArgumentsNotRequested", resourceCulture);
             }
         }
     }

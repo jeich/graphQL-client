@@ -27,6 +27,8 @@ namespace JEich.GraphQL.Tests
             AssertEqualIgnoringWhiteSpace(Requests.Basic, result);
         }
 
+        #region Arguments
+
         [Test]
         public void SerializeRequestObject_WithArguments_CorrectlySerializes()
         {
@@ -39,6 +41,20 @@ namespace JEich.GraphQL.Tests
 
             AssertEqualIgnoringWhiteSpace(Requests.Arguments, result);
         }
+
+        [Test]
+        public void SerializeRequestObject_WithArguments_CorrectlySerializesAndSpecifiedArgumentsOmitted()
+        {
+            var requestObject = new RequestObject(new Data.Player { Id = "4" });
+
+            string result = GraphQLSerializer.SerializeRequestObject(requestObject);
+
+            AssertEqualIgnoringWhiteSpace(Requests.SpecifiedArgumentsNotRequested, result);
+        }
+
+        #endregion Arguments
+
+        #region Aliases
 
         [Test]
         public void SerializeRequestObject_AliasedWithArguments_CorrectlySerializes()
@@ -56,6 +72,8 @@ namespace JEich.GraphQL.Tests
 
             AssertEqualIgnoringWhiteSpace(Requests.Aliased, result);
         }
+
+        #endregion Aliases
 
 
         private void AssertEqualIgnoringWhiteSpace(string expected, string actual)

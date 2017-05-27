@@ -120,13 +120,11 @@
   <data name="Aliased" xml:space="preserve">
     <value>{
   empireHero: hero(name: "Darth Vader") {
-    name
     friends {
       name
     }
   }
   jediHero: hero(name: "Luke Skywalker") {
-    name
     friends {
       name
     }  
@@ -136,7 +134,6 @@
   <data name="Arguments" xml:space="preserve">
     <value>{
   hero(name: "Obi-wan Kanobi") {
-    name
     friends {
       name
     }
@@ -151,6 +148,13 @@
 		name
 	  }
 	}
+}</value>
+  </data>
+  <data name="SpecifiedArgumentsNotRequested" xml:space="preserve">
+    <value>{
+  player(id: "4") {
+    name
+  }
 }</value>
   </data>
 </root>
