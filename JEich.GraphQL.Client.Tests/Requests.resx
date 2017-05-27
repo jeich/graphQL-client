@@ -119,12 +119,18 @@
   </resheader>
   <data name="Aliased" xml:space="preserve">
     <value>{
-  empireHero: hero(episode: EMPIRE) {
+  empireHero: hero(name: "Darth Vader") {
     name
+    friends {
+      name
+    }
   }
-  jediHero: hero(episode: JEDI) {
+  jediHero: hero(name: "Luke Skywalker") {
     name
-  }
+    friends {
+      name
+    }  
+}
 }</value>
   </data>
   <data name="Arguments" xml:space="preserve">

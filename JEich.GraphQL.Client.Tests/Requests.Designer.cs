@@ -63,12 +63,18 @@ namespace JEich.GraphQL.Tests {
         
         /// <summary>
         ///   Looks up a localized string similar to {
-        ///  empireHero: hero(episode: EMPIRE) {
+        ///  empireHero: hero(name: &quot;Darth Vader&quot;) {
         ///    name
+        ///    friends {
+        ///      name
+        ///    }
         ///  }
-        ///  jediHero: hero(episode: JEDI) {
+        ///  jediHero: hero(name: &quot;Luke Skywalker&quot;) {
         ///    name
-        ///  }
+        ///    friends {
+        ///      name
+        ///    }  
+        ///}
         ///}.
         /// </summary>
         internal static string Aliased {

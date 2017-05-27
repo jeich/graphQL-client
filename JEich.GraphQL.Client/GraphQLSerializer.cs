@@ -24,14 +24,15 @@ namespace JEich.GraphQL
             foreach (var obj in objs)
             {
                 sb.Append(obj.Name);
+                SerializeAlias(obj, sb);
                 SerializeObjectStart(obj.Object, sb);
                 sb.Append(" {");
                 sb.Append(Environment.NewLine);
                 SerializeObject(obj.Object, sb);
                 sb.Append(Environment.NewLine);
                 sb.Append('}');
+                sb.Append(Environment.NewLine);
             }
-            sb.Append(Environment.NewLine);
             sb.Append('}');
             return sb.ToString();
         }
@@ -42,6 +43,7 @@ namespace JEich.GraphQL
             sb.Append('{');
             sb.Append(Environment.NewLine);
             sb.Append(obj.Name);
+            SerializeAlias(obj, sb);
             SerializeObjectStart(obj.Object, sb);
             sb.Append(" {");
             sb.Append(Environment.NewLine);
@@ -109,6 +111,15 @@ namespace JEich.GraphQL
                 return _assemblyCache[t.FullName];
             else
                 return (_assemblyCache[t.FullName] = t.GetTypeInfo().DeclaredProperties);
+        }
+
+        private static void SerializeAlias(RequestObject obj, StringBuilder sb)
+        {
+            if (obj is AliasedObject)
+            {
+                sb.Append(": ");
+                sb.Append(obj.Object.GetType().Name.ToLower());
+            }
         }
     }
 }

@@ -40,6 +40,23 @@ namespace JEich.GraphQL.Tests
             AssertEqualIgnoringWhiteSpace(Requests.Arguments, result);
         }
 
+        [Test]
+        public void SerializeRequestObject_AliasedWithArguments_CorrectlySerializes()
+        {
+            var requestObject = new AliasedObject(new Data.Hero
+            {
+                Name = "Darth Vader"
+            }, "empireHero");
+            var requestObject2 = new AliasedObject(new Data.Hero
+            {
+                Name = "Luke Skywalker"
+            }, "jediHero");
+
+            string result = GraphQLSerializer.SerializeRequestObjects(requestObject, requestObject2);
+
+            AssertEqualIgnoringWhiteSpace(Requests.Aliased, result);
+        }
+
 
         private void AssertEqualIgnoringWhiteSpace(string expected, string actual)
         {
