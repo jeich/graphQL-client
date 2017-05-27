@@ -4,9 +4,8 @@ using System.Text;
 
 namespace JEich.GraphQL.Tests.Data
 {
-    public class Hero
+    public class Friend
     {
         public string Name { get; set; }
-        public Friend[] Friends { get; set; }
     }
 }

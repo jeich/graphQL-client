@@ -29,11 +29,7 @@ namespace JEich.GraphQL.Tests
         [TestMethod]
         public async Task GetAsync_OneField_DeserializesCorrectly()
         {
-            SetupGraphQLResponse(@"
-                ""hero"": {
-                      ""name"": ""R2-D2""
-                    }
-            ");
+            SetupMessageHandler(Responses.Basic);
 
             var response = await _client.GetAsync<Data.Hero, Data.Hero>();
             Assert.IsTrue(response.WasSuccessful);
@@ -41,22 +37,41 @@ namespace JEich.GraphQL.Tests
         }
 
         [TestMethod]
-        public async Task GetAsync_NestedOnject_DeserializesCorrectly()
+        public async Task GetAsync_NestedObject_DeserializesCorrectly()
         {
-            SetupGraphQLResponse(@"
-                ""hero"": {
-                      ""name"": ""R2-D2"",
-                        ""weapon"": {
-                            ""name"": ""axe""
-                        }
-                    }
-            ");
+            SetupMessageHandler(Responses.NestedObject);
+
+            var response = await _client.GetAsync<Data.LonelyHero, Data.LonelyHero>();
+            Assert.IsTrue(response.WasSuccessful);
+            Assert.AreEqual("R2-D2", response.Result.Name);
+            Assert.IsNotNull(response.Result.Friend);
+            Assert.AreEqual("Luke Skywalker", response.Result.Friend.Name);
+        }
+
+        [TestMethod]
+        public async Task GetAsync_NestedObjectWithComment_DeserializesCorrectly()
+        {
+            SetupMessageHandler(Responses.NestedObjectWithComment);
+
+            var response = await _client.GetAsync<Data.LonelyHero, Data.LonelyHero>();
+            Assert.IsTrue(response.WasSuccessful);
+            Assert.AreEqual("R2-D2", response.Result.Name);
+            Assert.IsNotNull(response.Result.Friend);
+            Assert.AreEqual("Luke Skywalker", response.Result.Friend.Name);
+        }
+
+        [TestMethod]
+        public async Task GetAsync_NestedArray_DeserializesCorrectly()
+        {
+            SetupMessageHandler(Responses.NestedArray);
 
             var response = await _client.GetAsync<Data.Hero, Data.Hero>();
             Assert.IsTrue(response.WasSuccessful);
             Assert.AreEqual("R2-D2", response.Result.Name);
-            Assert.IsNotNull(response.Result.Weapon);
-            Assert.IsNotNull("axe", response.Result.Weapon.Name);
+            Assert.IsNotNull(response.Result.Friends);
+            Assert.AreEqual("Luke Skywalker", response.Result.Friends[0].Name);
+            Assert.AreEqual("Han Solo", response.Result.Friends[1].Name);
+            Assert.AreEqual("Leia Organa", response.Result.Friends[2].Name);
         }
 
         private void SetupGraphQLResponse(string data)

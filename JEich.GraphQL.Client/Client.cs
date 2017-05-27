@@ -47,13 +47,13 @@ namespace JEich.GraphQL
                     {
                         if (child.Key == "data")
                         {
-                            var dataObj = child.Value.ToObject<JObject>();
+                            var dataObj = child.Value;
                             string typeName = typeof(TResponse).Name.ToLower();
                             if (dataObj[typeName] == null)
                             {
                                 throw new Exception("Data format invalid");//TODO: tidy up
                             }
-                            var item = DeserializeObjectAndChildren<TResponse>(dataObj[typeName].ToObject<JObject>());
+                            var item = DeserializeObjectAndChildren<TResponse>(dataObj[typeName]);
                             return new Response<TResponse>
                             {
                                 Result = item,
@@ -79,28 +79,49 @@ namespace JEich.GraphQL
             }
         }
 
-        protected static T DeserializeObjectAndChildren<T>(JObject obj)
+        protected static T DeserializeObjectAndChildren<T>(JToken token)
             where T : new()
         {
-            return (T)DeserializeObjectAndChildren(obj, typeof(T));
+            return (T)DeserializeObjectAndChildren(token, typeof(T));
         }
-        protected static object DeserializeObjectAndChildren(JObject obj, Type t)
+
+        protected static object DeserializeObjectAndChildren(JToken token, Type t)
         {
-            var result = Activator.CreateInstance(t);
-            var properties = t.GetRuntimeProperties().ToDictionary(x => x.Name.ToLower(), x => x);
-            foreach (var token in obj)
+            if (t.IsArray)
             {
-                if (properties.ContainsKey(token.Key))
+                var children = token.Children().ToArray();
+                Array arrayResult = Array.CreateInstance(t.GetElementType(), children.Count());
+                for (int i = 0; i < token.Children().Count(); i++)
                 {
-                    if (token.Value.Type == JTokenType.Object)
-                    {
-                        properties[token.Key].SetValue(result, DeserializeObjectAndChildren(token.Value.ToObject<JObject>(), properties[token.Key].PropertyType));
-                    }
-                    else
-                    {
-                        properties[token.Key].SetValue(result, token.Value.ToObject(properties[token.Key].PropertyType));
-                    }
+                    arrayResult.SetValue(DeserializeObjectAndChildren(children[i].ToObject<JObject>(), t.GetElementType()), i);
                 }
+                return arrayResult;
+            }
+            object result = Activator.CreateInstance(t);
+            var properties = t.GetRuntimeProperties().ToDictionary(x => x.Name.ToLower(), x => x);
+            foreach (var child in token.Children())
+            {
+                if (child is JProperty)
+                {
+                    var property = (JProperty)child;
+                    properties[property.Name].SetValue(result, property.Value.ToObject(properties[property.Name].PropertyType));
+                }
+                else if (child is JObject)
+                {
+                    var parent = child.Parent as JProperty;
+                    properties[parent.Name].SetValue(result, DeserializeObjectAndChildren(child, properties[parent.Name].PropertyType));
+                }
+                else
+                {
+                    var parent = child.Parent as JProperty;
+                    properties[parent.Name].SetValue(result, DeserializeObjectAndChildren(child, properties[parent.Name].PropertyType));
+                }
+            }
+            foreach (var obj in token.Children<JObject>())
+            {
+            }
+            foreach (var array in token.Children<JArray>())
+            {
             }
             return result;
         }
