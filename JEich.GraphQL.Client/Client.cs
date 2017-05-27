@@ -25,7 +25,7 @@ namespace JEich.GraphQL
 
         public Client(Uri baseUri, Func<HttpClient> httpClientProvider) : this(baseUri)
         {
-            _httpClientProvider = httpClientProvider;
+            _httpClientProvider = httpClientProvider ?? throw new ArgumentNullException(nameof(httpClientProvider));
         }
 
         public async Task<Response> GetAsync(params RequestObject[] objs)
@@ -36,7 +36,7 @@ namespace JEich.GraphQL
                 {
                     RequestUri = _baseUri,
                     Method = HttpMethod.Get,
-                    Content = new StringContent(CreateRequestObjects(objs), Encoding.UTF8, "application/json")
+                    Content = new StringContent(GraphQLSerializer.SerializeRequestObjects(objs), Encoding.UTF8, "application/json")
                 };
                 var requestObjects = objs.ToDictionary(x => x.Name, x => x);
                 var httpResponse = await client.SendAsync(httpRequest);
@@ -119,16 +119,6 @@ namespace JEich.GraphQL
                 }
             }
             return result;
-        }
-
-        protected static string CreateRequestObjects(params RequestObject[] objs)
-        {
-            return $"{{ {string.Join(",", objs.Select(x => x.Name + "{" + SerializeInnerObject(x) + "}"))} }}";
-        }
-
-        protected static string SerializeInnerObject(RequestObject obj)
-        {
-            return string.Join(Environment.NewLine, obj.GetType().GetRuntimeProperties().Select(x => x.Name.ToLower()));
         }
 
         protected HttpClient GetHttpClient()

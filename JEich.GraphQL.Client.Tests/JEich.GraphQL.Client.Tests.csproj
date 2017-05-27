@@ -21,6 +21,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Requests.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Requests.resx</DependentUpon>
+    </Compile>
     <Compile Update="Responses.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -29,6 +34,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="Requests.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Requests.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Update="Responses.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Responses.Designer.cs</LastGenOutput>
