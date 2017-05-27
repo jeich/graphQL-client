@@ -54,6 +54,8 @@ public class Friend
 
 Any properties set on the supplied object will be used as arguments in the query and (TODO) will not be returned in the response.
 
+Properties on the request object **should be nullable** or the default values will be sent as arguments.
+
 ## Examples
 
 ### Basic Query
